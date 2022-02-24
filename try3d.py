@@ -16,8 +16,10 @@ t = 0.0 # just a timestamp to change things
 nCube = 100
 cube_angles   = np.random.rand(nCube,1) * 360
 cube_axes     = np.random.rand(nCube,3)
-cube_position = 10*(np.random.rand(nCube,3) - 0.5)
-cube_scales   = np.random.rand(nCube,1) / 2 + 0.1
+cube_position = np.random.rand(nCube,3) - 0.5
+cube_scales   = np.random.rand(nCube,1) / 4 + 0.1
+# constrain them to be on the shell of a spehre
+cube_position = 5*(cube_position / np.repeat([np.sqrt(np.sum(cube_position**2, axis=1))] , 3, axis=0).T)
 
 # main callback function
 def draw():
@@ -51,7 +53,7 @@ def draw():
         # move and rotate the coordinate for each cube
         # translation comes first so the thing rotates on the spot
         glTranslated(cube_position[i,0], cube_position[i,1], cube_position[i,2]) # move
-        glRotatef(cube_angles[i] + t*50, cube_axes[i,0], cube_axes[i,1], cube_axes[i,2]) # rotate
+        glRotatef(cube_angles[i] + t*200, cube_axes[i,0], cube_axes[i,1], cube_axes[i,2]) # rotate
         glScaled(cube_scales[i], cube_scales[i], cube_scales[i])
         draw_cube()
         # bring back the original coordinate before the translation and rotation
@@ -134,4 +136,5 @@ glutInitWindowPosition(0, 0) # set the window position
 win = glutCreateWindow(b"my window") # create a window with a title (only takes char = byte data hence b)
 glutDisplayFunc(draw) # setting a callback (this happens everytime the user interacts with the window)
 glutIdleFunc(draw) # draw all the time
+
 glutMainLoop()
