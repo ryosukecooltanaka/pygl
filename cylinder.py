@@ -18,13 +18,14 @@ t = 0 # just a time stamp
 img = Image.open('./map.png')
 img_data = np.array(list(img.getdata()), np.uint8)
 
+outimg_list = []
 
 # main callback function
 def draw():
     # access time stamp variable t as a global variable
     # otherwise any change you apply to t will not be propagated outside the
     # function (you are operating on the local copy)
-    global t
+    global t, outimg_list
 
     # enable depth rendering + 2d texture mapping
     glEnable(GL_DEPTH_TEST)
@@ -57,6 +58,12 @@ def draw():
     glPopMatrix()
 
     glutSwapBuffers() # this is like Flip in PTB?
+    if t%10==0 & t<360:
+        temp = np.flipud(glReadPixels(0, 0, width, height, GL_RGB, GL_FLOAT))
+        outimg_list.append(Image.fromarray((temp * 255).astype(np.uint8)))
+        if t==350:
+            outimg_list[0].save('out.gif', save_all=True, append_images=outimg_list[1:],duration=100,loop=0)
+
 
 # function to draw a cylinder
 def draw_cylinder():
@@ -86,7 +93,6 @@ def refresh():
     # nothing interesting happens here
     glViewport(0, 0, width, height)
 
-
     # define the projection (use the perspective projection)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity() # intialize by loading identity
@@ -94,7 +100,7 @@ def refresh():
     # Position of four edges of the near plane + Z-position of near and far
     # planes (camera is supposed to be at the origin)
     # numbers are in the model coordinate (but after all rotations etc)
-    glFrustum(-0.5, 0.5, -0.5, 0.5, 1, 30.0)
+    glFrustum(-0.5, 0.5, -0.5, 0.5, 2, 30.0)
 
     # define the camera
     glMatrixMode(GL_MODELVIEW)
