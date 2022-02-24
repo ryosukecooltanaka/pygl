@@ -14,6 +14,11 @@ c_radius = 1
 c_height = 3
 t = 0 # just a time stamp
 
+# load Image
+img = Image.open('./map.png')
+img_data = np.array(list(img.getdata()), np.uint8)
+
+
 # main callback function
 def draw():
     # access time stamp variable t as a global variable
@@ -21,8 +26,9 @@ def draw():
     # function (you are operating on the local copy)
     global t
 
-    # enable depth rendering
+    # enable depth rendering + 2d texture mapping
     glEnable(GL_DEPTH_TEST)
+    glEnable(GL_TEXTURE_2D)
 
     # clear buffer (black screen now)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -40,18 +46,38 @@ def draw():
     # make sure we are opearting on the modelview matrix
     # this already has the camera matrix defined in refresh()
     glMatrixMode(GL_MODELVIEW)
+    # implement rotation of the world
     glPushMatrix()
-    glRotate(t, 0, 1, 0)
-    glTranslate(0, 0, -c_height/2)
-    glColor3f(0, 1, 0.5)
-    draw_cylinder()
+    glRotate(90, 1, 0, 0)
+    glRotate(-t, 0, 0, 1)
+
+    # draw_cylinder()
+    draw_sphere()
+
     glPopMatrix()
 
     glutSwapBuffers() # this is like Flip in PTB?
 
+# function to draw a cylinder
 def draw_cylinder():
+    # move so that the cylinder is centered
+    glMatrixMode(GL_MODELVIEW)
+    glTranslate(0, 0, -c_height/2)
+
     C = gluNewQuadric()
+    gluQuadricTexture(C, GLU_TRUE) # generate texture coordinate for C
     gluCylinder(C, c_radius, c_radius, c_height, 100, 1)
+
+
+
+# or sphere
+def draw_sphere():
+    C = gluNewQuadric()
+    # mapping to sphere happens inside? so need to flip the texture?
+    gluQuadricOrientation(C, GLU_OUTSIDE)
+    gluQuadricTexture(C, GLU_TRUE) # generate texture coordinate for C
+    gluSphere(C, c_radius, 20, 20)
+
 
 # This function defines the camera and projection
 def refresh():
@@ -68,12 +94,12 @@ def refresh():
     # Position of four edges of the near plane + Z-position of near and far
     # planes (camera is supposed to be at the origin)
     # numbers are in the model coordinate (but after all rotations etc)
-    glFrustum(-1, 1, -1, 1, 1, 30.0)
+    glFrustum(-0.5, 0.5, -0.5, 0.5, 1, 30.0)
 
     # define the camera
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity() # intialize by loading identity
-    gluLookAt(0,0,5,  # where your eye is
+    gluLookAt(0,3,5,  # where your eye is
               0,0,0,  # where you are looking at
               0,1,0)  # which way is up
 
@@ -83,6 +109,33 @@ glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH) # define 
 glutInitWindowSize(width, height) # set the window size
 glutInitWindowPosition(0, 0) # set the window position
 win = glutCreateWindow(b"my window") # create a window with a title (only takes char = byte data hence b)
+
+# prepare a texture
+tid = glGenTextures(1)
+
+# flip the texture coordinate otherwise it is inverted
+glMatrixMode(GL_TEXTURE)
+glTranslatef(0.5, 0.5, 0)
+glRotate(180,0,1,0)
+glTranslatef(-0.5, -0.5, 0)
+glMatrixMode(GL_MODELVIEW)
+
+# tell opengl to map the texture to verticies
+glBindTexture(GL_TEXTURE_2D, tid)
+
+# wrapping parameters
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+# Set texture filtering parameters
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR) # use nearlest when texture is smaller than object
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR) # use nearlest when texture is bigger than object
+
+# associate texture Id to the image
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.size[0], img.size[1], 0,
+             GL_RGBA, GL_UNSIGNED_BYTE, img_data)
+
+
+
 glutDisplayFunc(draw) # setting a callback (this happens everytime the user interacts with the window)
 glutIdleFunc(draw) # draw all the time
 glutMainLoop()
