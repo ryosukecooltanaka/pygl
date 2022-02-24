@@ -13,10 +13,11 @@ width, height = 500, 500 # window size
 t = 0.0 # just a timestamp to change things
 
 # define the parameter of cubes
-nCube = 10
+nCube = 100
 cube_angles   = np.random.rand(nCube,1) * 360
 cube_axes     = np.random.rand(nCube,3)
 cube_position = 10*(np.random.rand(nCube,3) - 0.5)
+cube_scales   = np.random.rand(nCube,1) / 2 + 0.1
 
 # main callback function
 def draw():
@@ -51,6 +52,7 @@ def draw():
         # translation comes first so the thing rotates on the spot
         glTranslated(cube_position[i,0], cube_position[i,1], cube_position[i,2]) # move
         glRotatef(cube_angles[i] + t*50, cube_axes[i,0], cube_axes[i,1], cube_axes[i,2]) # rotate
+        glScaled(cube_scales[i], cube_scales[i], cube_scales[i])
         draw_cube()
         # bring back the original coordinate before the translation and rotation
         glPopMatrix()
