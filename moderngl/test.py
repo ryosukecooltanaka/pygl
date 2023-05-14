@@ -121,11 +121,11 @@ fbo = ctx.simple_framebuffer((512, 512))
 fbo.use()
 
 # load images to be used as a Texture
-img = imageio.v3.imread('./map.jpeg').astype(np.uint8)
+img = imageio.v3.imread('./map.png').astype(np.uint8)
 tex = ctx.texture((img.shape[1],img.shape[0]), img.shape[2], data=img)
 tex.use()
 
-print(ctx.version_code) 
+print(ctx.version_code)
 
 
 
